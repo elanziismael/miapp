@@ -16,6 +16,8 @@ public class AppController {
         this.outputPanel  = o;
 
         // Acciones de botones
+        controlPanel.btnCurl.addActionListener(this::onCurl);
+        controlPanel.btnDate.addActionListener(this::onDate);
         controlPanel.btnRun.addActionListener(this::onRun);
         controlPanel.btnClear.addActionListener(this::onClear);
         controlPanel.btnExit.addActionListener(e -> System.exit(0));
@@ -44,6 +46,61 @@ public class AppController {
             JOptionPane.showMessageDialog(null, "Error ejecutando proceso:\n" + ex.getMessage());
         }
     }
+
+    private void onDate(ActionEvent e) {
+        outputPanel.append("Ejecutando comando...");
+        try {
+            ProcessBuilder pb = new ProcessBuilder("date");
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+
+            new Thread(() -> {
+                try (var reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        outputPanel.append(line);
+                    }
+                } catch (Exception ex) {
+                    outputPanel.append("Error: " + ex.getMessage());
+                }
+            }).start();
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Error ejecutando proceso:\n" + ex.getMessage());
+        }
+    }
+
+    private void onCurl(ActionEvent e) {
+    String url = controlPanel.txtInput.getText().trim();
+
+
+    outputPanel.append("Ejecutando curl para: " + url);
+
+    try {
+        ProcessBuilder pb = new ProcessBuilder("curl", url);
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+
+        new Thread(() -> {
+            try (var reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    outputPanel.append(line);
+                }
+            } catch (Exception ex) {
+                outputPanel.append("Error leyendo salida: " + ex.getMessage());
+            }
+        }).start();
+
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(null, "Error ejecutando curl:\n" + ex.getMessage());
+    }
+}
+
+
+    
 
     private void onClear(ActionEvent e) {
         outputPanel.clear();
